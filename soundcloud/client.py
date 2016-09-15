@@ -1,4 +1,7 @@
 from functools import partial
+
+import requests
+
 try:
     from urllib import urlencode
 except ImportError:
@@ -23,6 +26,7 @@ class Client(object):
         self.scheme = self.use_ssl and 'https://' or 'http://'
         self.options = kwargs
         self._authorize_url = None
+        self._session = requests.Session()
 
         self.client_id = kwargs.get('client_id')
 
@@ -60,7 +64,7 @@ class Client(object):
             'proxies': self.options.get('proxies', None)
         })
         self.token = wrapped_resource(
-            make_request('post', url, options))
+            make_request(self._session, 'post', url, options))
         self.access_token = self.token.access_token
         return self.token
 
@@ -93,7 +97,7 @@ class Client(object):
             'proxies': self.options.get('proxies', None)
         })
         self.token = wrapped_resource(
-            make_request('post', url, options))
+            make_request(self._session, 'post', url, options))
         self.access_token = self.token.access_token
 
     def _credentials_flow(self):
@@ -112,7 +116,7 @@ class Client(object):
             'proxies': self.options.get('proxies', None)
         })
         self.token = wrapped_resource(
-            make_request('post', url, options))
+            make_request(self._session, 'post', url, options))
         self.access_token = self.token.access_token
 
     def _request(self, method, resource, **kwargs):
@@ -130,7 +134,7 @@ class Client(object):
             'verify_ssl': self.options.get('verify_ssl', True),
             'proxies': self.options.get('proxies', None)
         })
-        return wrapped_resource(make_request(method, url, kwargs))
+        return wrapped_resource(make_request(self._session, method, url, kwargs))
 
     def __getattr__(self, name, **kwargs):
         """Translate an HTTP verb into a request method."""

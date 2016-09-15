@@ -3,7 +3,6 @@ try:
 except ImportError:
     from urllib.parse import urlencode
 
-import requests
 import six
 
 import soundcloud
@@ -85,8 +84,9 @@ def namespaced_query_string(d, prefix=""):
     return qs
 
 
-def make_request(method, url, params):
-    """Make an HTTP request, formatting params as required."""
+def make_request(session, method, url, params):
+    """Make an HTTP request, formatting params as required.
+    """
     empty = []
 
     # TODO
@@ -122,7 +122,7 @@ def make_request(method, url, params):
     files = namespaced_query_string(extract_files_from_dict(params))
     data = namespaced_query_string(remove_files_from_dict(params))
 
-    request_func = getattr(requests, method, None)
+    request_func = getattr(session, method, None)
     if request_func is None:
         raise TypeError('Unknown method: %s' % (method,))
 
